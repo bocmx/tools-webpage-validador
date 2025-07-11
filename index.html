@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Confirmação de Presença</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: linear-gradient(
+          135deg,
+          #0a0a0a 0%,
+          #1a1a1a 50%,
+          #0d2818 100%
+        );
+        margin: 0;
+        padding: 20px;
+      }
+
+      .container {
+        background: linear-gradient(145deg, #1a1a1a 0%, #0f0f0f 100%);
+        border: 1px solid #2a2a2a;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4),
+          0 0 20px rgba(0, 255, 127, 0.1);
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+        position: relative;
+      }
+
+      .container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #00ff7f, #32cd32, #228b22);
+        border-radius: 12px 12px 0 0;
+      }
+
+      h2 {
+        color: #00ff7f;
+        margin-bottom: 30px;
+        font-weight: 600;
+        font-size: 24px;
+        text-shadow: 0 0 10px rgba(0, 255, 127, 0.3);
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+        text-align: left;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        color: #ffffff;
+        font-weight: 500;
+        font-size: 15px;
+      }
+
+      input[type="email"] {
+        width: 100%;
+        padding: 14px;
+        background: #2a2a2a;
+        border: 2px solid #404040;
+        border-radius: 8px;
+        font-size: 16px;
+        color: #ffffff;
+        transition: all 0.3s ease;
+      }
+
+      input[type="email"]::placeholder {
+        color: #888;
+      }
+
+      input[type="email"]:focus {
+        outline: none;
+        border-color: #00ff7f;
+        box-shadow: 0 0 10px rgba(0, 255, 127, 0.2);
+        background: #333;
+      }
+
+      input[type="email"]:invalid {
+        border-color: #ff4444;
+      }
+
+      button {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(
+          135deg,
+          #00ff7f 0%,
+          #32cd32 50%,
+          #228b22 100%
+        );
+        color: #000;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 4px 15px rgba(0, 255, 127, 0.3);
+      }
+
+      button:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 255, 127, 0.4);
+        background: linear-gradient(
+          135deg,
+          #32cd32 0%,
+          #00ff7f 50%,
+          #32cd32 100%
+        );
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .loading {
+        display: none;
+        margin-top: 10px;
+        color: #00ff7f;
+        font-weight: 500;
+      }
+
+      .error-message {
+        color: #ff4444;
+        font-size: 14px;
+        margin-top: 5px;
+        display: none;
+        font-weight: 500;
+      }
+
+      .spinner {
+        border: 2px solid #404040;
+        border-top: 2px solid #00ff7f;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+        margin-right: 10px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media (max-width: 480px) {
+        .container {
+          padding: 30px 20px;
+        }
+
+        h2 {
+          font-size: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Confirmação de Presença</h2>
+
+      <form id="emailForm">
+        <div class="form-group">
+          <label for="email">E-mail usado na inscrição:</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="exemplo@email.com"
+            required
+            autocomplete="email"
+          />
+          <div class="error-message" id="emailError"></div>
+        </div>
+
+        <button type="submit" id="submitBtn">Confirmar e Acessar</button>
+      </form>
+
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        Validando e-mail...
+      </div>
+    </div>
+
+    <script>
+      const form = document.getElementById("emailForm");
+      const emailInput = document.getElementById("email");
+      const submitBtn = document.getElementById("submitBtn");
+      const loading = document.getElementById("loading");
+      const emailError = document.getElementById("emailError");
+
+      // Validação em tempo real
+      emailInput.addEventListener("input", function () {
+        const email = this.value.trim();
+        if (email && !isValidEmail(email)) {
+          showError("Por favor, insira um e-mail válido.");
+        } else {
+          hideError();
+        }
+      });
+
+      function isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+      }
+
+      function showError(message) {
+        emailError.textContent = message;
+        emailError.style.display = "block";
+        emailInput.style.borderColor = "#ff4444";
+        emailInput.style.boxShadow = "0 0 10px rgba(255, 68, 68, 0.2)";
+      }
+
+      function hideError() {
+        emailError.style.display = "none";
+        emailInput.style.borderColor = "#404040";
+        emailInput.style.boxShadow = "none";
+      }
+
+      function showLoading() {
+        submitBtn.disabled = true;
+        submitBtn.style.display = "none";
+        loading.style.display = "block";
+      }
+
+      function hideLoading() {
+        submitBtn.disabled = false;
+        submitBtn.style.display = "block";
+        loading.style.display = "none";
+      }
+
+      // Função para criar timeout personalizado
+      function fetchWithTimeout(url, options = {}, timeout = 10000) {
+        return new Promise((resolve, reject) => {
+          const timeoutId = setTimeout(() => {
+            reject(
+              new Error("Timeout: Requisição demorou mais que o esperado")
+            );
+          }, timeout);
+
+          fetch(url, options)
+            .then((response) => {
+              clearTimeout(timeoutId);
+              resolve(response);
+            })
+            .catch((error) => {
+              clearTimeout(timeoutId);
+              reject(error);
+            });
+        });
+      }
+
+      async function getIP() {
+        const ipServices = [
+          "https://api.ipify.org?format=json",
+          "https://api64.ipify.org?format=json",
+          "https://ipapi.co/json/",
+        ];
+
+        for (let service of ipServices) {
+          try {
+            const response = await fetchWithTimeout(service, {}, 5000);
+            const data = await response.json();
+            return data.ip || data.IPv4 || "IP não identificado";
+          } catch (error) {
+            console.warn(`Falha ao obter IP de ${service}:`, error);
+            continue;
+          }
+        }
+        return "IP não identificado";
+      }
+
+      async function validarEmail(email) {
+        const maxRetries = 2;
+        let attempt = 0;
+
+        while (attempt < maxRetries) {
+          try {
+            const ip = await getIP();
+            const payload = {
+              email: email.trim().toLowerCase(),
+              ip,
+              timestamp: new Date().toISOString(),
+              userAgent: navigator.userAgent,
+              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            };
+
+            const response = await fetchWithTimeout(
+              //"https://google.com", // Colocar aqui um endpoint válido
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Accept: "application/json",
+                },
+                body: JSON.stringify(payload),
+              },
+              15000 // 15 segundos de timeout
+            );
+
+            if (response.ok) {
+              // Sucesso - redirecionar para o site desejado
+              window.location.href = "https://google.com";
+              return;
+            } else if (response.status === 404) {
+              showError(
+                "E-mail não encontrado. Verifique se é o mesmo usado na inscrição."
+              );
+              return;
+            } else if (response.status === 429) {
+              showError(
+                "Muitas tentativas. Aguarde um momento e tente novamente."
+              );
+              return;
+            } else {
+              throw new Error(`Erro HTTP: ${response.status}`);
+            }
+          } catch (error) {
+            attempt++;
+            console.error(`Tentativa ${attempt} falhou:`, error);
+
+            if (error.message.includes("Timeout")) {
+              if (attempt >= maxRetries) {
+                showError(
+                  "O servidor está demorando para responder. Tente novamente em alguns instantes."
+                );
+                return;
+              }
+              // Aguardar 2 segundos antes de tentar novamente
+              await new Promise((resolve) => setTimeout(resolve, 2000));
+              continue;
+            }
+
+            if (error.name === "TypeError" && error.message.includes("fetch")) {
+              showError(
+                "Erro de conexão. Verifique sua internet e tente novamente."
+              );
+              return;
+            }
+
+            if (attempt >= maxRetries) {
+              showError(
+                "Erro na validação. Tente novamente em alguns instantes."
+              );
+              return;
+            }
+
+            // Aguardar 2 segundos antes de tentar novamente
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+          }
+        }
+      }
+
+      form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const email = emailInput.value.trim();
+
+        if (!email) {
+          showError("Por favor, insira seu e-mail.");
+          emailInput.focus();
+          return;
+        }
+
+        if (!isValidEmail(email)) {
+          showError("Por favor, insira um e-mail válido.");
+          emailInput.focus();
+          return;
+        }
+
+        hideError();
+        showLoading();
+
+        try {
+          await validarEmail(email);
+        } finally {
+          hideLoading();
+        }
+      });
+
+      // Permitir Enter para submeter
+      emailInput.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+          form.dispatchEvent(new Event("submit"));
+        }
+      });
+    </script>
+  </body>
+</html>
