@@ -1,11 +1,38 @@
-# tools-webpage-validador
-Validador de condições pré-definidas (ex: e-mail de alunos) utilizando o n8n como backend.
+# ✅ Validador Simples com n8n
 
-Este projeto consiste em uma página HTML com um campo de entrada para valores (como e-mails de alunos). Após o preenchimento, o valor é enviado via Webhook para um workflow no **n8n**, que processa a requisição e retorna um código de status. Se a resposta for *200*, um script de redirecionamento é acionado, levando o usuário para a página desejada.
+Este é um exemplo de workflow do [n8n](https://n8n.io) para validar se um **e-mail informado** está presente em uma tabela PostgreSQL (ou Supabase), retornando o status HTTP adequado.
 
-## Como implementar
-1. Copie o JSON do workflow disponível na pasta **backend-n8n**.
+---
 
-2. Importe o JSON para sua instância do n8n.
+## ⚙️ Funcionamento
 
-3. Gere o endpoint do Webhook correspondente e atualize o valor na página HTML com esse endpoint.
+1. Um webhook do tipo `POST` recebe uma requisição com o campo `email`.
+2. O workflow busca esse e-mail na tabela `usuarios` do banco.
+3. Se encontrado, retorna `200 OK`.
+4. Se **não** encontrado, retorna `404 Not Found`.
+
+---
+
+## 🔧 Requisitos
+
+- Instância do [n8n](https://n8n.io)
+- Banco de dados PostgreSQL (pode ser Supabase)
+- Tabela `usuarios` com a coluna `email`
+
+---
+
+## 📥 Como usar
+
+1. Importe o arquivo `validador-simples.json` no seu n8n
+2. Configure as **credenciais PostgreSQL** no nó `Verificar E-mail1`
+3. Atualize o caminho do webhook (`/validador`) se necessário
+4. Conecte sua página ou serviço ao endpoint gerado
+
+---
+
+## 🧪 Exemplo de Requisição
+
+```bash
+curl -X POST https://SEU-N8N.com/webhook/validador \
+  -H 'Content-Type: application/json' \
+  -d '{ "email": "teste@exemplo.com" }'
