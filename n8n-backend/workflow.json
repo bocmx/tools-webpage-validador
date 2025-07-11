@@ -1,0 +1,148 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "respondWith": "noData",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [-580, 1140],
+      "name": "200 Code1",
+      "id": "c1994777-5643-4644-85b0-3044df849d5f"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "schema": {
+          "value": "public"
+        },
+        "table": {
+          "value": "usuarios",
+          "cachedResultName": "usuarios"
+        },
+        "returnAll": true,
+        "where": {
+          "values": [
+            {
+              "column": "email",
+              "value": "={{ $json.body.email }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [-1020, 1040],
+      "name": "Verificar E-mail1",
+      "alwaysOutputData": true,
+      "id": "1e2ef449-00f2-41cf-8460-91ae068f8302"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json }}",
+              "operator": {
+                "type": "object",
+                "operation": "empty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [-800, 1040],
+      "name": "Empty1",
+      "id": "8808651a-f91c-4a51-a4b2-07bcbcd6c672"
+    },
+    {
+      "parameters": {
+        "respondWith": "noData",
+        "options": {
+          "responseCode": 404
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [-580, 940],
+      "name": "404 Code1",
+      "id": "e5eae23f-1741-4aed-ade4-01600abd4d3d"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "validador",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [-1240, 1040],
+      "name": "Start1",
+      "webhookId": "REPLACE_WITH_YOUR_WEBHOOK_ID",
+      "id": "a78e8f38-5139-4cf5-a23e-38224e356ee0"
+    }
+  ],
+  "connections": {
+    "200 Code1": {
+      "main": [[]]
+    },
+    "Verificar E-mail1": {
+      "main": [
+        [
+          {
+            "node": "Empty1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Empty1": {
+      "main": [
+        [
+          {
+            "node": "404 Code1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "200 Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start1": {
+      "main": [
+        [
+          {
+            "node": "Verificar E-mail1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "REDACTED"
+  }
+}
